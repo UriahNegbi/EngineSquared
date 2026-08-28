@@ -1,4 +1,4 @@
-task("plugin")
+task("esplugin")
     on_run(function ()
         import("core.base.option")
         local verify = option.get("verify")
@@ -60,7 +60,7 @@ task("plugin")
     end)
 
     set_menu {
-        usage = "xmake plugin [options]",
+        usage = "xmake esplugin [options]",
         description = "Do something about plugins",
         options = {
             {'v', "verify", "k", nil, "Verify if all plugins are well structured"},
