@@ -156,8 +156,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libglu1-mesa-dev freeglut3-dev mesa-common-dev mesa-utils
-          sudo apt-get install -y python3 python3-pip
+          sudo apt-get install -y python3 python3-pip valgrind
           pip3 install gcovr
+
+      - name: Setup Windows test dependencies
+        if: contains(runner.os, 'windows')
+        run: |
+          choco install drmemory --version=2.6.0 -y --no-progress
 
       - name: Install xmake
         uses: xmake-io/github-action-setup-xmake@fadadea1162ec75ce1541d5bb68226fb147c221e
@@ -182,11 +187,10 @@ jobs:
         if: contains(runner.os, 'linux')
         uses: threeal/gcovr-action@1b53388d5f84b4f3afb1b9082782961dff911ba0
 
-      - name: Check memory leaks (macOS)
-        if: contains(runner.os, 'macos')
+      - name: Check memory leaks
         run: |
           xmake check_leaks
-        timeout-minutes: 30
+        timeout-minutes: 60
 
       - name: Clear test artifacts
         if: contains(runner.os, 'linux')

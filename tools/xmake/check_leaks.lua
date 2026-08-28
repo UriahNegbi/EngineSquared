@@ -2,9 +2,9 @@ includes(os.scriptdir() .. "/groups.lua")
 
 local TestGroupName = TEST_GROUP_NAME
 
-local function check_leaks_macos(targets, leaks_tool, project, os, verbose)
+local function check_targets(targets, leak_tool, project, os, verbose, build_params)
     local failing_targets = {}
-    for _, target in pairs(targets) do
+    for _, target in ipairs(targets) do
         local target_name = target:name()
         local bin_path = path.join(os.projectdir(), target:targetdir(), "debug", target:filename())
 
@@ -13,22 +13,45 @@ local function check_leaks_macos(targets, leaks_tool, project, os, verbose)
         end
 
         print("Running leaks check on: " .. bin_path)
-        local params = {
-            "--atExit",
-            "-exclude", "-[LNProcessInstanceRegistryClient makeXPCConnection]",
-            "--", bin_path
-        }
         local options = {try = true}
         if not verbose then
             options.stdout = os.nuldev()
             options.stderr = os.nuldev()
         end
-        local return_value = os.execv(leaks_tool, params, options)
+        local return_value = os.execv(leak_tool, build_params(bin_path), options)
         if return_value ~= 0 then
             table.insert(failing_targets, target_name)
         end
     end
     return failing_targets
+end
+
+local function macos_params(bin_path)
+    return {
+        "--atExit",
+        "-exclude", "-[LNProcessInstanceRegistryClient makeXPCConnection]",
+        "--", bin_path
+    }
+end
+
+local function linux_params(bin_path)
+    return {
+        "--leak-check=full",
+        "--show-leak-kinds=definite,indirect",
+        "--errors-for-leak-kinds=definite,indirect",
+        "--error-exitcode=99",
+        bin_path
+    }
+end
+
+local function windows_params(bin_path)
+    return {
+        "-batch",
+        "-brief",
+        "-check_leaks",
+        "-exit_code_if_errors", "99",
+        "--", bin_path
+    }
 end
 
 task("check_leaks")
@@ -64,16 +87,36 @@ task("check_leaks")
                 end
             end
         end
+
+        table.sort(targets, function(first, second)
+            return first:name() < second:name()
+        end)
+
         local failing_targets = {}
-        if os.host() == "macosx" then
+        local host = os.host()
+        if host == "macosx" then
             local leaks_tool = find_program("leaks", { check = "--help" })
             if not leaks_tool then
-                print("leaks tool not found!")
-                return
+                raise("leaks is required to check memory leaks on macOS.")
             end
-            failing_targets = check_leaks_macos(targets, leaks_tool, project, os, option.get("verbose"))
+            failing_targets = check_targets(
+                targets, leaks_tool, project, os, option.get("verbose"), macos_params)
+        elseif host == "linux" then
+            local valgrind = find_program("valgrind", { check = "--version" })
+            if not valgrind then
+                raise("Valgrind is required to check memory leaks on Linux.")
+            end
+            failing_targets = check_targets(
+                targets, valgrind, project, os, option.get("verbose"), linux_params)
+        elseif host == "windows" then
+            local drmemory = find_program("drmemory", { check = "-version" })
+            if not drmemory then
+                raise("Dr. Memory is required to check memory leaks on Windows.")
+            end
+            failing_targets = check_targets(
+                targets, drmemory, project, os, option.get("verbose"), windows_params)
         else
-            print("Memory leak checking is currently only implemented for macOS.")
+            raise("Memory leak checking is not supported on " .. host .. ".")
         end
         if #failing_targets > 0 then
             print("Targets with memory leaks found:")
