@@ -19,4 +19,4 @@ jobs:
           xmake build -y EventHandlerTest LoadFont LoadDocumentTest
       - name: Print leak reports
         run: |
-          xmake check_leaks -v --targets EventHandlerTest LoadFont LoadDocumentTest
+          xmake check_leaks -v EventHandlerTest LoadFont LoadDocumentTest
