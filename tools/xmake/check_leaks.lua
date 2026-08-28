@@ -15,7 +15,7 @@ local function check_leaks_macos(targets, leaks_tool, project, os, verbose)
         print("Running leaks check on: " .. bin_path)
         local params = {
             "--atExit",
-            "-exclude", "makeXPCConnection",
+            "-exclude", "-[LNProcessInstanceRegistryClient makeXPCConnection]",
             "--", bin_path
         }
         local options = {try = true}
