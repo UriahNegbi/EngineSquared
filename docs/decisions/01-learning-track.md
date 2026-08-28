@@ -16,7 +16,7 @@ required_by: []
 
 ## Status
 
-In progress
+in-progress
 
 ## Date
 
