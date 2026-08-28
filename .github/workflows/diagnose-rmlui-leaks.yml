@@ -1,0 +1,21 @@
+name: Diagnose RmlUi leaks
+
+on:
+  push:
+    branches: [ ci/diagnose-577-rmlui-leaks ]
+
+jobs:
+  diagnose:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: xmake-io/github-action-setup-xmake@fadadea1162ec75ce1541d5bb68226fb147c221e
+        with:
+          xmake-version: latest
+      - name: Build affected tests
+        run: |
+          xmake f -y -m debug
+          xmake build -y EventHandlerTest LoadDocumentTest
+      - name: Print leak reports
+        run: |
+          xmake check_leaks -v EventHandlerTest LoadDocumentTest
