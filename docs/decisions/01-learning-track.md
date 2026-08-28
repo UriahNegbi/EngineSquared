@@ -16,11 +16,11 @@ required_by: []
 
 ## Status
 
-Proposed
+In progress
 
 ## Date
 
-2026-08-29
+2026-08-28
 
 ## Context and Problem Statement
 
@@ -56,7 +56,7 @@ The plugin is installed with:
 xmake plugin --install github:EngineSquared/learn
 ```
 
-The plugin and curriculum live in the [EngineSquared/learn repository](https://github.com/EngineSquared/learn). Learning projects consume EngineSquared through the `enginesquared` xrepo package with its `core_only` configuration, so learners receive the core without cloning or building this repository.
+The learning track requires xmake 3.1.0 or newer because that version introduced the plugin manager used by the installation command. The plugin and curriculum live in the [EngineSquared/learn repository](https://github.com/EngineSquared/learn). Learning projects consume EngineSquared through the `enginesquared` xrepo package with its `core_only` configuration, so learners receive the core without cloning or building this repository.
 
 ### Consequences
 
@@ -66,6 +66,7 @@ The plugin and curriculum live in the [EngineSquared/learn repository](https://g
 * Good, because consuming the `core_only` package keeps the track focused on the ECS core.
 * Bad, because the learning track can drift as the engine API changes.
 * Bad, because the plugin, xrepo package configuration, and separate repository create more release surfaces to maintain.
+* Bad, because installing a remote plugin executes code from another repository, so releases need documented provenance and rollback procedures before the track is considered stable.
 * The curriculum-rot risk is mitigated by a nightly job that verifies all solutions against the engine's `main` branch.
 
 ### Confirmation
@@ -103,6 +104,8 @@ The decision is confirmed when the learning track installs through xmake, initia
 ## More Information
 
 The epic defines the runner, curriculum, guardrails, quality checks, and adoption work: [EngineSquared/EngineSquared#617](https://github.com/EngineSquared/EngineSquared/issues/617). The implementation belongs in [EngineSquared/learn](https://github.com/EngineSquared/learn), with the `core_only` package configuration maintained in [EngineSquared/xrepo](https://github.com/EngineSquared/xrepo).
+
+The [plugin distribution validation](https://github.com/EngineSquared/EngineSquared/issues/618) must establish the supported immutable-reference syntax and the release provenance and rollback procedure before the learning track is considered stable.
 
 This decision should be revisited if xmake plugin distribution cannot support the required platforms or if the nightly compatibility job cannot detect curriculum drift reliably.
 
