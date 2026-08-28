@@ -2,7 +2,7 @@ includes(os.scriptdir() .. "/groups.lua")
 
 local TestGroupName = TEST_GROUP_NAME
 
-local function check_targets(targets, leak_tool, project, os, verbose, build_params)
+local function check_targets(targets, leak_tool, project, os, verbose, build_params, leak_exit_code)
     local failing_targets = {}
     for _, target in ipairs(targets) do
         local target_name = target:name()
@@ -19,8 +19,10 @@ local function check_targets(targets, leak_tool, project, os, verbose, build_par
             options.stderr = os.nuldev()
         end
         local return_value = os.execv(leak_tool, build_params(bin_path), options)
-        if return_value ~= 0 then
+        if return_value ~= 0 and (not leak_exit_code or return_value == leak_exit_code) then
             table.insert(failing_targets, target_name)
+        elseif return_value ~= 0 then
+            raise(target_name .. " exited with code " .. return_value .. " during its leak check.")
         end
     end
     return failing_targets
@@ -107,14 +109,14 @@ task("check_leaks")
                 raise("Valgrind is required to check memory leaks on Linux.")
             end
             failing_targets = check_targets(
-                targets, valgrind, project, os, option.get("verbose"), linux_params)
+                targets, valgrind, project, os, option.get("verbose"), linux_params, 99)
         elseif host == "windows" then
             local drmemory = find_program("drmemory", { check = "-version" })
             if not drmemory then
                 raise("Dr. Memory is required to check memory leaks on Windows.")
             end
             failing_targets = check_targets(
-                targets, drmemory, project, os, option.get("verbose"), windows_params)
+                targets, drmemory, project, os, option.get("verbose"), windows_params, 99)
         else
             raise("Memory leak checking is not supported on " .. host .. ".")
         end
