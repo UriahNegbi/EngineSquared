@@ -13,7 +13,7 @@ local function check_targets(targets, leak_tool, project, os, verbose, build_par
         end
 
         print("Running leaks check on: " .. bin_path)
-        local options = {try = true}
+        local options = {try = true, curdir = path.directory(bin_path)}
         if not verbose then
             options.stdout = os.nuldev()
             options.stderr = os.nuldev()
