@@ -20,7 +20,7 @@ xmake f -y -m debug && xmake test -y -v   # all tests
 xmake test EntityTest                     # single test target (target name == test file basename)
 xmake test -g UnitTests                   # whole test group
 xmake check_leaks                         # macOS-only leak check over all test targets
-xmake check_leaks --targets EntityTest    # single target
+xmake check_leaks EntityTest              # single target (positional; --targets is not a flag)
 ```
 
 Lint / format (CI enforces both):
