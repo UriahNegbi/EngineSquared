@@ -27,7 +27,7 @@ class RenderInterface : public Rmlui::Utils::IRenderer {
   public:
     RenderInterface() = delete;
     explicit RenderInterface(Engine::Core &core);
-    ~RenderInterface() override = default;
+    ~RenderInterface() override;
 
     static RenderInterface *GetActive();
     void FlushDrawCommands(wgpu::RenderPassEncoder const &renderPass);

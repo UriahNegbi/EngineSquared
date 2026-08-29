@@ -79,6 +79,22 @@ wgpu::BindGroup CreateTextureBindGroup(Engine::Core &core, const wgpu::BindGroup
 
 RenderInterface *RenderInterface::_active = nullptr;
 RenderInterface::RenderInterface(Engine::Core &core) : _core(core) {}
+RenderInterface::~RenderInterface()
+{
+    if (_screenBindGroup != nullptr)
+    {
+        _screenBindGroup.release();
+    }
+    if (_screenBuffer != nullptr)
+    {
+        _screenBuffer.destroy();
+        _screenBuffer.release();
+    }
+    if (_active == this)
+    {
+        _active = nullptr;
+    }
+}
 
 RenderInterface *RenderInterface::GetActive() { return _active; }
 
