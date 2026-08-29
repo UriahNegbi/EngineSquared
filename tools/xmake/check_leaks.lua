@@ -14,10 +14,10 @@ local function check_targets(targets, leak_tool, project, os, verbose, build_par
         end
 
         print("Running leaks check on: " .. bin_path)
+        -- stderr stays visible: it is the only place the tool explains why it could not run
         local options = {try = true, curdir = path.directory(bin_path)}
         if not verbose then
             options.stdout = os.nuldev()
-            options.stderr = os.nuldev()
         end
         local return_value = os.execv(leak_tool, build_params(bin_path), options)
         if return_value ~= 0 and (not leak_exit_code or return_value == leak_exit_code) then
