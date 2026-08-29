@@ -164,6 +164,12 @@ jobs:
         if: contains(runner.os, 'windows')
         run: |
           choco install drmemory --version=2.6.0 -y --no-progress
+          $drmemory = Get-ChildItem 'C:\Program Files (x86)\Dr. Memory' -Filter drmemory.exe -Recurse |
+            Select-Object -First 1
+          if (-not $drmemory) {
+            throw 'Dr. Memory executable was not found after installation.'
+          }
+          $drmemory.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Install xmake
         uses: xmake-io/github-action-setup-xmake@fadadea1162ec75ce1541d5bb68226fb147c221e
