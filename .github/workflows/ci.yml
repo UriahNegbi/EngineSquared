@@ -139,11 +139,18 @@ jobs:
     name: Run tests
     needs: [ check_repository_cleanliness, lint_code ]
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - os: windows-latest
+          # Dr. Memory 2.6 cannot initialize ucrtbase.dll on the Windows 2025 image.
+          # Use the release CRT because Dr. Memory misclassifies Jolt's debug-CRT
+          # aligned allocations as leaks.
+          - os: windows-2022
+            mode: release
           - os: ubuntu-latest
+            mode: debug
           - os: macos-latest
+            mode: debug
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
@@ -156,17 +163,28 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libglu1-mesa-dev freeglut3-dev mesa-common-dev mesa-utils
-          sudo apt-get install -y python3 python3-pip
+          sudo apt-get install -y python3 python3-pip valgrind
           pip3 install gcovr
+
+      - name: Setup Windows test dependencies
+        if: contains(runner.os, 'windows')
+        run: |
+          choco install drmemory --version=2.6.0 -y --no-progress
+          $drmemory = Get-ChildItem 'C:\Program Files (x86)\Dr. Memory' -Filter drmemory.exe -Recurse |
+            Select-Object -First 1
+          if (-not $drmemory) {
+            throw 'Dr. Memory executable was not found after installation.'
+          }
+          $drmemory.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Install xmake
         uses: xmake-io/github-action-setup-xmake@fadadea1162ec75ce1541d5bb68226fb147c221e
         with:
           xmake-version: latest
           actions-cache-folder: ".xmake-cache"
-          actions-cache-key: "${{ matrix.os }}-tests"
+          actions-cache-key: "${{ matrix.os }}-${{ matrix.mode }}-tests"
           build-cache: true
-          build-cache-key: "${{ matrix.os }}-tests"
+          build-cache-key: "${{ matrix.os }}-${{ matrix.mode }}-tests"
 
       - name: Clean build artifact
         run: |
@@ -174,7 +192,7 @@ jobs:
 
       - name: Run tests
         run: |
-          xmake f -y -m debug
+          xmake f -y -m ${{ matrix.mode }}
           xmake test -y -v
         timeout-minutes: 30
 
@@ -182,11 +200,10 @@ jobs:
         if: contains(runner.os, 'linux')
         uses: threeal/gcovr-action@1b53388d5f84b4f3afb1b9082782961dff911ba0
 
-      - name: Check memory leaks (macOS)
-        if: contains(runner.os, 'macos')
+      - name: Check memory leaks
         run: |
           xmake check_leaks
-        timeout-minutes: 30
+        timeout-minutes: 60
 
       - name: Clear test artifacts
         if: contains(runner.os, 'linux')

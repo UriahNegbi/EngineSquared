@@ -11,11 +11,29 @@
 #include "core/Core.hpp"
 #include "plugin/PluginPhysics.hpp"
 #include "resource/Time.hpp"
+#include "scheduler/Shutdown.hpp"
 #include "scheduler/Startup.hpp"
 #include "utils/ShapeGenerator.hpp"
 #include "utils/helper/CreateShape.hpp"
 
 #include <glm/glm.hpp>
+
+namespace {
+
+/// Runs the Shutdown scheduler when the test scope ends, including when a fatal
+/// assertion returns early, so the Jolt factory and the PhysicsManager are
+/// always destroyed.
+class PhysicsShutdownGuard {
+  public:
+    explicit PhysicsShutdownGuard(Engine::Core &core) : _core{core} {}
+
+    ~PhysicsShutdownGuard() { _core.GetScheduler<Engine::Scheduler::Shutdown>().RunSystems(); }
+
+  private:
+    Engine::Core &_core;
+};
+
+} // namespace
 
 /**
  * @brief Test vehicle steering functionality
@@ -23,6 +41,7 @@
 TEST(VehiclePlugin, VehicleSteering)
 {
     Engine::Core core;
+    PhysicsShutdownGuard shutdownGuard{core};
     core.AddPlugins<Physics::Plugin>();
 
     core.RegisterSystem<Engine::Scheduler::Update>(
