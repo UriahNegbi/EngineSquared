@@ -13,7 +13,11 @@ local function check_leaks_macos(targets, leaks_tool, project, os, verbose)
         end
 
         print("Running leaks check on: " .. bin_path)
-        local params = {"--atExit", "--", bin_path}
+        local params = {
+            "--atExit",
+            "-exclude", "-[LNProcessInstanceRegistryClient makeXPCConnection]",
+            "--", bin_path
+        }
         local options = {try = true}
         if not verbose then
             options.stdout = os.nuldev()
@@ -89,4 +93,3 @@ task("check_leaks")
             {nil, "targets", "vs", nil, "Targets to check for leaks (default: all test targets)"}
         }
     }
-
