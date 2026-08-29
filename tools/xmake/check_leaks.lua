@@ -9,7 +9,7 @@ local function check_targets(targets, leak_tool, project, os, verbose, build_par
         local bin_path = path.join(os.projectdir(), target:targetdir(), "debug", target:filename())
 
         if not os.isfile(bin_path) then
-            raise("Executable not found for target: " .. target_name)
+            assert(false, "Executable not found for target: " .. target_name)
         end
 
         print("Running leaks check on: " .. bin_path)
@@ -22,7 +22,7 @@ local function check_targets(targets, leak_tool, project, os, verbose, build_par
         if return_value ~= 0 and (not leak_exit_code or return_value == leak_exit_code) then
             table.insert(failing_targets, target_name)
         elseif return_value ~= 0 then
-            raise(target_name .. " exited with code " .. return_value .. " during its leak check.")
+            assert(false, target_name .. " exited with code " .. return_value .. " during its leak check.")
         end
     end
     return failing_targets
@@ -42,6 +42,7 @@ local function linux_params(bin_path)
         "--show-leak-kinds=definite,indirect",
         "--errors-for-leak-kinds=definite,indirect",
         "--error-exitcode=99",
+        "--suppressions=" .. path.join(os.projectdir(), "tools", "valgrind", "glfw.supp"),
         bin_path
     }
 end
