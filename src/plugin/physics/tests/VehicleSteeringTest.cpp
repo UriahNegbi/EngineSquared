@@ -11,6 +11,7 @@
 #include "core/Core.hpp"
 #include "plugin/PluginPhysics.hpp"
 #include "resource/Time.hpp"
+#include "scheduler/Shutdown.hpp"
 #include "scheduler/Startup.hpp"
 #include "utils/ShapeGenerator.hpp"
 #include "utils/helper/CreateShape.hpp"
@@ -63,4 +64,6 @@ TEST(VehiclePlugin, VehicleSteering)
     EXPECT_FLOAT_EQ(controller->forwardInput, 0.0f);
     EXPECT_FLOAT_EQ(controller->steeringInput, 0.0f);
     EXPECT_FLOAT_EQ(controller->brakeInput, 0.0f);
+
+    core.GetScheduler<Engine::Scheduler::Shutdown>().RunSystems();
 }

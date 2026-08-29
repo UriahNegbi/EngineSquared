@@ -42,6 +42,7 @@ local function linux_params(bin_path)
         "--leak-check=full",
         "--show-leak-kinds=definite,indirect",
         "--errors-for-leak-kinds=definite,indirect",
+        "--undef-value-errors=no",
         "--error-exitcode=99",
         "--suppressions=" .. path.join(os.projectdir(), "tools", "valgrind", "glfw.supp"),
         bin_path

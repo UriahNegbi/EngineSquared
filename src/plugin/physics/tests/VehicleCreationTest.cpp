@@ -10,6 +10,7 @@
 #include "core/Core.hpp"
 #include "plugin/PluginPhysics.hpp"
 #include "resource/Time.hpp"
+#include "scheduler/Shutdown.hpp"
 #include "scheduler/Startup.hpp"
 #include "utils/ShapeGenerator.hpp"
 
@@ -58,4 +59,6 @@ TEST(VehiclePlugin, VehicleCreation)
     EXPECT_TRUE(vehicleInternal.IsValid());
     EXPECT_NE(vehicleInternal.vehicleConstraint, nullptr);
     EXPECT_NE(vehicleInternal.vehicleConstraint->GetController(), nullptr);
+
+    core.GetScheduler<Engine::Scheduler::Shutdown>().RunSystems();
 }
