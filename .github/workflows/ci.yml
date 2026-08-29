@@ -143,9 +143,14 @@ jobs:
       matrix:
         include:
           # Dr. Memory 2.6 cannot initialize ucrtbase.dll on the Windows 2025 image.
+          # Use the release CRT because Dr. Memory misclassifies Jolt's debug-CRT
+          # aligned allocations as leaks.
           - os: windows-2022
+            mode: release
           - os: ubuntu-latest
+            mode: debug
           - os: macos-latest
+            mode: debug
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
@@ -177,9 +182,9 @@ jobs:
         with:
           xmake-version: latest
           actions-cache-folder: ".xmake-cache"
-          actions-cache-key: "${{ matrix.os }}-tests"
+          actions-cache-key: "${{ matrix.os }}-${{ matrix.mode }}-tests"
           build-cache: true
-          build-cache-key: "${{ matrix.os }}-tests"
+          build-cache-key: "${{ matrix.os }}-${{ matrix.mode }}-tests"
 
       - name: Clean build artifact
         run: |
@@ -187,7 +192,7 @@ jobs:
 
       - name: Run tests
         run: |
-          xmake f -y -m debug
+          xmake f -y -m ${{ matrix.mode }}
           xmake test -y -v
         timeout-minutes: 30
 
