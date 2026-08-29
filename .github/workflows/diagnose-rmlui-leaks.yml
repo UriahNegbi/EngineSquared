@@ -19,3 +19,22 @@ jobs:
       - name: Print leak reports
         run: |
           xmake check_leaks -v EventHandlerTest LoadDocumentTest
+
+  diagnose-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglu1-mesa-dev freeglut3-dev mesa-common-dev mesa-utils valgrind
+      - uses: xmake-io/github-action-setup-xmake@fadadea1162ec75ce1541d5bb68226fb147c221e
+        with:
+          xmake-version: latest
+      - name: Build affected tests
+        run: |
+          xmake f -y -m debug
+          xmake build -y EventHandlerTest GBufferTest LoadDocumentTest LoadFont RenderPassTest
+      - name: Print leak reports
+        run: |
+          xmake check_leaks -v EventHandlerTest GBufferTest LoadDocumentTest LoadFont RenderPassTest
