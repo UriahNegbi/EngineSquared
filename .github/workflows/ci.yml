@@ -142,7 +142,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest
+          # Dr. Memory 2.6 cannot initialize ucrtbase.dll on the Windows 2025 image.
+          - os: windows-2022
           - os: ubuntu-latest
           - os: macos-latest
     runs-on: ${{ matrix.os }}
