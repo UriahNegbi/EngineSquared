@@ -6,7 +6,7 @@ local function check_targets(targets, leak_tool, project, os, verbose, build_par
     local failing_targets = {}
     for _, target in ipairs(targets) do
         local target_name = target:name()
-        local bin_path = path.join(os.projectdir(), target:targetdir(), "debug", target:filename())
+        local bin_path = target:targetfile()
 
         if not os.isfile(bin_path) then
             raise("Executable not found for target: " .. target_name)
