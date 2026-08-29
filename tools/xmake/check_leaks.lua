@@ -9,7 +9,7 @@ local function check_targets(targets, leak_tool, project, os, verbose, build_par
         local bin_path = path.join(os.projectdir(), target:targetdir(), "debug", target:filename())
 
         if not os.isfile(bin_path) then
-            assert(false, "Executable not found for target: " .. target_name)
+            raise("Executable not found for target: " .. target_name)
         end
 
         print("Running leaks check on: " .. bin_path)
@@ -22,7 +22,7 @@ local function check_targets(targets, leak_tool, project, os, verbose, build_par
         if return_value ~= 0 and (not leak_exit_code or return_value == leak_exit_code) then
             table.insert(failing_targets, target_name)
         elseif return_value ~= 0 then
-            assert(false, target_name .. " exited with code " .. return_value .. " during its leak check.")
+            raise(target_name .. " exited with code " .. return_value .. " during its leak check.")
         end
     end
     return failing_targets
@@ -103,7 +103,7 @@ task("check_leaks")
                 raise("leaks is required to check memory leaks on macOS.")
             end
             failing_targets = check_targets(
-                targets, leaks_tool, project, os, option.get("verbose"), macos_params)
+                targets, leaks_tool, project, os, option.get("verbose"), macos_params, 1)
         elseif host == "linux" then
             local valgrind = find_program("valgrind", { check = "--version" })
             if not valgrind then
