@@ -42,6 +42,7 @@ local function linux_params(bin_path)
         "--show-leak-kinds=definite,indirect",
         "--errors-for-leak-kinds=definite,indirect",
         "--error-exitcode=99",
+        "--gen-suppressions=all",
         bin_path
     }
 end
