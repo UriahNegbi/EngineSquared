@@ -5,8 +5,8 @@ issue: ADR-001
 title: Progressive learning track for the engine core
 branch: docs/637-learning-track-adr
 status: in-progress
-pr: ~
-pr_url: ~
+pr: 640
+pr_url: https://github.com/EngineSquared/EngineSquared/pull/640
 github_issue: 617
 github_issue_url: https://github.com/EngineSquared/EngineSquared/issues/617
 depends_on: []
@@ -16,7 +16,7 @@ required_by: []
 
 ## Status
 
-in-progress
+accepted; the frontmatter `status: in-progress` tracks delivery of the epic, not the decision itself.
 
 ## Date
 
@@ -58,6 +58,13 @@ xmake plugin --install github:EngineSquared/learn
 
 The learning track requires xmake 3.1.0 or newer because that version introduced the plugin manager used by the installation command. The plugin and curriculum live in the [EngineSquared/learn repository](https://github.com/EngineSquared/learn). Learning projects consume EngineSquared through the `enginesquared` xrepo package with its `core_only` configuration, so learners receive the core without cloning or building this repository.
 
+An xmake project template still ships in [EngineSquared/xrepo](https://github.com/EngineSquared/xrepo) as a thin fallback for people who prefer a scaffold; the project it generates only tells the learner to install the plugin, so there is one source of truth for the curriculum.
+
+Two guardrails follow from the last two decision drivers and are part of this decision:
+
+* The runner holds an explain-back gate: a passing exercise stays pending until the learner answers its comprehension question. The check is offline string matching, so it works no matter who or what wrote the code, and it does not depend on any vendor's guardrails.
+* The tutor contract lives in `TUTOR.md` in the learning repository and is referenced from `AGENTS.md`, so every agent that reads the AAIF format gets the same five-stage question ladder. Tool-specific enforcement, such as Claude Code hooks, is an addition on top of it, never the mechanism it relies on.
+
 ### Consequences
 
 * Good, because learners can install the track without cloning the engine repository.
@@ -66,7 +73,7 @@ The learning track requires xmake 3.1.0 or newer because that version introduced
 * Good, because consuming the `core_only` package keeps the track focused on the ECS core.
 * Bad, because the learning track can drift as the engine API changes.
 * Bad, because the plugin, xrepo package configuration, and separate repository create more release surfaces to maintain.
-* Bad, because installing a remote plugin executes code from another repository, so releases need documented provenance and rollback procedures before the track is considered stable.
+* Bad, because installing a remote plugin executes code from another repository, so learners have to trust the `EngineSquared/learn` releases the same way they already trust the xrepo packages.
 * The curriculum-rot risk is mitigated by a nightly job that verifies all solutions against the engine's `main` branch.
 
 ### Confirmation
@@ -105,7 +112,7 @@ The decision is confirmed when the learning track installs through xmake, initia
 
 The epic defines the runner, curriculum, guardrails, quality checks, and adoption work: [EngineSquared/EngineSquared#617](https://github.com/EngineSquared/EngineSquared/issues/617). The implementation belongs in [EngineSquared/learn](https://github.com/EngineSquared/learn), with the `core_only` package configuration maintained in [EngineSquared/xrepo](https://github.com/EngineSquared/xrepo).
 
-The [plugin distribution validation](https://github.com/EngineSquared/EngineSquared/issues/618) must establish the supported immutable-reference syntax and the release provenance and rollback procedure before the learning track is considered stable.
+The [plugin distribution validation](https://github.com/EngineSquared/EngineSquared/issues/618) records which reference syntaxes `xmake plugin --install` accepts and the minimum xmake version, on Linux, macOS and Windows.
 
 This decision should be revisited if xmake plugin distribution cannot support the required platforms or if the nightly compatibility job cannot detect curriculum drift reliably.
 
