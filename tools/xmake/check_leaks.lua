@@ -6,10 +6,11 @@ local function check_targets(targets, leak_tool, project, os, verbose, build_par
     local failing_targets = {}
     for _, target in ipairs(targets) do
         local target_name = target:name()
-        local bin_path = target:targetfile()
+        -- absolute, because the tools below run with the build directory as their working directory
+        local bin_path = path.absolute(target:targetfile(), os.projectdir())
 
         if not os.isfile(bin_path) then
-            raise("Executable not found for target: " .. target_name)
+            os.raise("Executable not found for target: " .. target_name)
         end
 
         print("Running leaks check on: " .. bin_path)
@@ -22,7 +23,7 @@ local function check_targets(targets, leak_tool, project, os, verbose, build_par
         if return_value ~= 0 and (not leak_exit_code or return_value == leak_exit_code) then
             table.insert(failing_targets, target_name)
         elseif return_value ~= 0 then
-            raise(target_name .. " exited with code " .. return_value .. " during its leak check.")
+            os.raise(target_name .. " exited with code " .. return_value .. " during its leak check.")
         end
     end
     return failing_targets
@@ -63,6 +64,9 @@ task("check_leaks")
         import("core.project.project")
         import("core.project.config")
         import("lib.detect.find_program")
+
+        -- without this the targets report a mode-less directory, so their executables are not found
+        config.load()
 
         local wanted_target = option.get("targets") or {}
         local targets = {}
