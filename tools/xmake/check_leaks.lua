@@ -52,6 +52,7 @@ local function windows_params(bin_path)
     return {
         "-batch",
         "-brief",
+        "-leaks_only",
         "-check_leaks",
         "-exit_code_if_errors", "99",
         "--", bin_path
